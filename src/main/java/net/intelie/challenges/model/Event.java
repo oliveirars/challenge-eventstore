@@ -1,4 +1,4 @@
-package net.intelie.challenges;
+package net.intelie.challenges.model;
 
 /**
  * This is just an event stub, feel free to expand it if needed.

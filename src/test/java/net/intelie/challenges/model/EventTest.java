@@ -1,6 +1,8 @@
-package net.intelie.challenges;
+package net.intelie.challenges.model;
 
 import org.junit.Test;
+
+import net.intelie.challenges.model.Event;
 
 import static org.junit.Assert.assertEquals;
 
