@@ -1,5 +1,7 @@
 package net.intelie.challenges.model;
 
+import java.util.Objects;
+
 /**
  * This is just an event stub, feel free to expand it if needed.
  */
@@ -18,5 +20,17 @@ public class Event {
 
     public long timestamp() {
         return timestamp;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      Event other = (Event) obj;
+      return timestamp == other.timestamp && Objects.equals(type, other.type);
     }
 }
