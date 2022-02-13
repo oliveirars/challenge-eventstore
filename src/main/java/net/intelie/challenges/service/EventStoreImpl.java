@@ -1,11 +1,9 @@
 package net.intelie.challenges.service;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import net.intelie.challenges.model.Event;
 import net.intelie.challenges.model.EventType;
@@ -13,14 +11,13 @@ import net.intelie.challenges.util.Utils;
 
 public class EventStoreImpl implements EventStore {
 
-  private Map<String, List<Event>> map;
-  private final Map<String, List<Event>> events = new ConcurrentHashMap<>();
+  private final Map<String, ConcurrentSkipListMap<Long, Event>> events = new ConcurrentHashMap<>();
 
   @Override
   public void insert(Event event) {
     checkEvent(event);
-    events.putIfAbsent(event.type(), new LinkedList<>());
-    events.get(event.type()).add(event);
+    events.putIfAbsent(event.type(), new ConcurrentSkipListMap<>());
+    events.get(event.type()).put(event.timestamp(), event);
   }
 
   @Override
@@ -34,10 +31,8 @@ public class EventStoreImpl implements EventStore {
     checkEventType(type);
     checkQueryInterval(startTime, endTime);
 
-    Predicate<Event> filterCriteria = event -> startTime <= event.timestamp() && event.timestamp() < endTime;
-
-    List<Event> selectedEventsView = events.getOrDefault(type, new LinkedList<>()).stream().filter(filterCriteria)
-      .collect(Collectors.toList());
+    ConcurrentNavigableMap<Long, Event> selectedEventsView = events.getOrDefault(type, new ConcurrentSkipListMap<>())
+      .subMap(startTime, endTime);
 
     return new EventIteratorImpl(selectedEventsView);
   }

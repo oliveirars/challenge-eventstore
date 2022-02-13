@@ -7,7 +7,9 @@ import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.junit.BeforeClass;
@@ -27,13 +29,13 @@ public class EventIteratorTest extends EventStoreChallengeTest {
 
   @Test
   public void moveNext_ShouldReturnTrue_When_IterationHasMoreEvents() {
-    eventIterator = new EventIteratorImpl(DATASET.subList(0, 1));
+    eventIterator = new EventIteratorImpl(createDataView(DATASET.subList(0, 1)));
     assertTrue(eventIterator.moveNext());
   }
 
   @Test
   public void moveNext_ShouldReturnFalse_When_IterationHasNoEvents() {
-    eventIterator = new EventIteratorImpl(Collections.emptyList());
+    eventIterator = new EventIteratorImpl(createDataView(Collections.emptyList()));
     assertFalse(eventIterator.moveNext());
   }
 
@@ -45,14 +47,14 @@ public class EventIteratorTest extends EventStoreChallengeTest {
 
   @Test
   public void moveNext_ShouldReturnFalse_When_IterationHasNoMoreEvents() {
-    eventIterator = new EventIteratorImpl(DATASET.subList(0, 1));
+    eventIterator = new EventIteratorImpl(createDataView(DATASET.subList(0, 1)));
     assertTrue(eventIterator.moveNext());
     assertFalse(eventIterator.moveNext());
   }
 
   @Test
   public void moveNext_ShouldReturnFalse_When_IterationHasBeenClosed() throws Exception {
-    eventIterator = new EventIteratorImpl(DATASET.subList(0, 2));
+    eventIterator = new EventIteratorImpl(createDataView(DATASET.subList(0, 2)));
     eventIterator.moveNext();
     eventIterator.close();
     assertFalse(eventIterator.moveNext());
@@ -60,20 +62,20 @@ public class EventIteratorTest extends EventStoreChallengeTest {
 
   @Test(expected = NoSuchElementException.class)
   public void current_ShouldThrowNoSuchElement_When_CalledWithoutPreviousMoveNext() {
-    eventIterator = new EventIteratorImpl(DATASET);
+    eventIterator = new EventIteratorImpl(createDataView(DATASET));
     eventIterator.current();
   }
 
   @Test(expected = NoSuchElementException.class)
   public void current_ShouldThrowNoSuchElement_When_IterationHasNoEvents() {
-    eventIterator = new EventIteratorImpl(Collections.emptyList());
+    eventIterator = new EventIteratorImpl(createDataView(Collections.emptyList()));
     eventIterator.moveNext();
     eventIterator.current();
   }
 
   @Test(expected = NoSuchElementException.class)
   public void current_ShouldThrowNoSuchElement_When_IterationHasNoMoreEvents() {
-    eventIterator = new EventIteratorImpl(DATASET.subList(0, 1));
+    eventIterator = new EventIteratorImpl(createDataView(DATASET.subList(0, 1)));
     eventIterator.moveNext();
     eventIterator.moveNext();
     eventIterator.current();
@@ -81,7 +83,7 @@ public class EventIteratorTest extends EventStoreChallengeTest {
 
   @Test(expected = IllegalStateException.class)
   public void current_ShouldThrowIllegalState_When_IterationHasBeenClosed() throws Exception {
-    eventIterator = new EventIteratorImpl(DATASET.subList(0, 1));
+    eventIterator = new EventIteratorImpl(createDataView(DATASET.subList(0, 1)));
     eventIterator.moveNext();
     eventIterator.close();
     eventIterator.current();
@@ -92,7 +94,7 @@ public class EventIteratorTest extends EventStoreChallengeTest {
     List<Event> type1Dataset = DATASET.stream().filter(event -> EventType.TYPE_1.toString().equals(event.type()))
       .collect(Collectors.toList());
 
-    eventIterator = new EventIteratorImpl(type1Dataset);
+    eventIterator = new EventIteratorImpl(createDataView(type1Dataset));
 
     for (Event event : type1Dataset) {
       eventIterator.moveNext();
@@ -102,7 +104,7 @@ public class EventIteratorTest extends EventStoreChallengeTest {
 
   @Test(expected = IllegalStateException.class)
   public void remove_ShouldThrowIllegalState_When_IterationHasNoEvent() {
-    eventIterator = new EventIteratorImpl(Collections.emptyList());
+    eventIterator = new EventIteratorImpl(createDataView(Collections.emptyList()));
     eventIterator.moveNext();
     eventIterator.remove();
   }
@@ -116,7 +118,7 @@ public class EventIteratorTest extends EventStoreChallengeTest {
 
   @Test(expected = IllegalStateException.class)
   public void remove_ShouldThrowIllegalState_When_IterationHasNoMoreEvent() {
-    eventIterator = new EventIteratorImpl(DATASET.subList(0, 1));
+    eventIterator = new EventIteratorImpl(createDataView(DATASET.subList(0, 1)));
     eventIterator.moveNext();
     eventIterator.moveNext();
     eventIterator.remove();
@@ -124,13 +126,13 @@ public class EventIteratorTest extends EventStoreChallengeTest {
 
   @Test(expected = IllegalStateException.class)
   public void remove_ShouldThrowIllegalState_When_CalledWithoutPreviousMoveNext() {
-    eventIterator = new EventIteratorImpl(DATASET.subList(0, 1));
+    eventIterator = new EventIteratorImpl(createDataView(DATASET.subList(0, 1)));
     eventIterator.remove();
   }
 
   @Test(expected = NoSuchElementException.class)
   public void remove_ShouldNotMoveNext_When_CalledOverEvent() {
-    eventIterator = new EventIteratorImpl(DATASET.subList(0, 2));
+    eventIterator = new EventIteratorImpl(createDataView(DATASET.subList(0, 2)));
     eventIterator.moveNext();
     eventIterator.remove();
     eventIterator.current();
@@ -139,16 +141,22 @@ public class EventIteratorTest extends EventStoreChallengeTest {
   public void remove_ShouldDeleteEventFromDataView_When_CalledOverEvent() {
     Event eventToRemove = DATASET.get(0);
     Event eventToKeep = DATASET.get(1);
-    List<Event> data = Arrays.asList(eventToKeep, eventToRemove);
 
-    eventIterator = new EventIteratorImpl(data);
+    Map<Long, Event> dataView = createDataView(Arrays.asList(eventToKeep, eventToRemove));
+    eventIterator = new EventIteratorImpl(dataView);
 
     eventIterator.moveNext();
     eventIterator.remove();
 
-    assertEquals(1, data.size());
-    assertFalse(data.contains(eventToRemove.timestamp()));
-    assertTrue(data.contains(eventToKeep));
+    assertEquals(1, dataView.size());
+    assertFalse(dataView.containsKey(eventToRemove.timestamp()));
+    assertEquals(dataView.get(eventToKeep.timestamp()), eventToKeep);
+  }
+
+  private Map<Long, Event> createDataView(List<Event> events) {
+    Map<Long, Event> dataView = new TreeMap<>();
+    events.forEach(event -> dataView.put(event.timestamp(), event));
+    return dataView;
   }
 
 }

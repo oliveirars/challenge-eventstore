@@ -1,21 +1,21 @@
 package net.intelie.challenges.service;
 
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import net.intelie.challenges.model.Event;
 
 public class EventIteratorImpl implements EventIterator {
 
-  private final List<Event> events;
+  private final Map<Long, Event> events;
   private Iterator<Event> iterator;
   private Event currentEvent;
 
-  public EventIteratorImpl(List<Event> events) {
+  public EventIteratorImpl(Map<Long, Event> events) {
     this.events = events;
     if (events != null) {
-      iterator = this.events.iterator();
+      iterator = this.events.values().iterator();
     }
   }
 
