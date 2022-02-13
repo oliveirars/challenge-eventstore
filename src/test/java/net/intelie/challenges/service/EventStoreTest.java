@@ -172,6 +172,19 @@ public class EventStoreTest extends EventStoreChallengeTest {
     assertFalse(eventIterator.moveNext());
   }
 
+  @Test
+  public void query_ShouldReturnIteratorWithoutRemovedEvent_When_CalledAfterEventRemove() {
+    Event event = EventDataRepository.getEventsDataSet().get(0);
+    eventStore.insert(event);
+
+    eventIterator = eventStore.query(event.type(), Long.MIN_VALUE, Long.MAX_VALUE);
+    eventIterator.moveNext();
+    eventIterator.remove();
+    eventIterator = eventStore.query(event.type(), Long.MIN_VALUE, Long.MAX_VALUE);
+
+    assertFalse(eventIterator.moveNext());
+  }
+
   private void populateStore(Optional<Set<EventType>> types) {
     boolean allTypes = !types.isPresent();
     Set<String> requestedTypes = types.orElse(Collections.emptySet()).stream().map(type -> type.toString()).collect(
