@@ -10,18 +10,15 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import net.intelie.challenges.model.Event;
 import net.intelie.challenges.model.EventType;
 
-public class EventIteratorTest {
+public class EventIteratorTest extends EventStoreChallengeTest {
 
   private static List<Event> DATASET;
-
-  private EventIterator eventIterator;
 
   @BeforeClass
   public static void init() {
@@ -152,21 +149,6 @@ public class EventIteratorTest {
     assertEquals(1, data.size());
     assertFalse(data.contains(eventToRemove.timestamp()));
     assertTrue(data.contains(eventToKeep));
-  }
-
-  @After
-  public void releaseResources() {
-    if (eventIterator != null) {
-      try {
-        eventIterator.close();
-      }
-      catch (Exception e) {
-        e.printStackTrace();
-      }
-      finally {
-        eventIterator = null;
-      }
-    }
   }
 
 }

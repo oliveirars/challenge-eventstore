@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import net.intelie.challenges.model.Event;
 import net.intelie.challenges.model.EventType;
+import net.intelie.challenges.util.Utils;
 
 public class EventStoreImpl implements EventStore {
 
@@ -48,19 +49,13 @@ public class EventStoreImpl implements EventStore {
   }
 
   private void checkEvent(Event event) {
-    if (event == null) {
-      throw new IllegalArgumentException("Event cannot be null.");
-    }
+    Utils.requireNonNull(event, "Event cannot be null.");
     checkEventType(event.type());
   }
 
   private void checkEventType(String type) {
-    if (type == null) {
-      throw new IllegalArgumentException("Event type cannot be null.");
-    }
-    if (EventType.getByName(type) == null) {
-      throw new IllegalArgumentException(String.format("Event type '%s' not supported.", type));
-    }
+    Utils.requireNonNull(type, "Event type cannot be null.");
+    Utils.requireNonNull(EventType.getByName(type), String.format("Event type '%s' not supported.", type));
   }
 
 }

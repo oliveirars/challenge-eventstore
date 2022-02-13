@@ -10,18 +10,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import net.intelie.challenges.model.Event;
 import net.intelie.challenges.model.EventType;
 
-public class EventStoreTest {
+public class EventStoreTest extends EventStoreChallengeTest {
 
   private EventStore eventStore;
-
-  private EventIterator eventIterator;
 
   @Before
   public void setup() {
@@ -182,21 +179,6 @@ public class EventStoreTest {
 
     EventDataRepository.getEventsDataSet().stream().filter(event -> allTypes || requestedTypes.contains(event.type()))
       .forEach(event -> eventStore.insert(event));
-  }
-
-  @After
-  public void releaseResources() {
-    if (eventIterator != null) {
-      try {
-        eventIterator.close();
-      }
-      catch (Exception e) {
-        e.printStackTrace();
-      }
-      finally {
-        eventIterator = null;
-      }
-    }
   }
 
 }
