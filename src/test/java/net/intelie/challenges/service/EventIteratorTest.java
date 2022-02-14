@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -60,21 +59,21 @@ public class EventIteratorTest extends EventStoreChallengeTest {
     assertFalse(eventIterator.moveNext());
   }
 
-  @Test(expected = NoSuchElementException.class)
-  public void current_ShouldThrowNoSuchElement_When_CalledWithoutPreviousMoveNext() {
+  @Test(expected = IllegalStateException.class)
+  public void current_ShouldThrowIllegalState_When_CalledWithoutPreviousMoveNext() {
     eventIterator = new EventIteratorImpl(createDataView(DATASET));
     eventIterator.current();
   }
 
-  @Test(expected = NoSuchElementException.class)
-  public void current_ShouldThrowNoSuchElement_When_IterationHasNoEvents() {
+  @Test(expected = IllegalStateException.class)
+  public void current_ShouldThrowIllegalState_When_IterationHasNoEvents() {
     eventIterator = new EventIteratorImpl(createDataView(Collections.emptyList()));
     eventIterator.moveNext();
     eventIterator.current();
   }
 
-  @Test(expected = NoSuchElementException.class)
-  public void current_ShouldThrowNoSuchElement_When_IterationHasNoMoreEvents() {
+  @Test(expected = IllegalStateException.class)
+  public void current_ShouldThrowIllegalState_When_IterationHasNoMoreEvents() {
     eventIterator = new EventIteratorImpl(createDataView(DATASET.subList(0, 1)));
     eventIterator.moveNext();
     eventIterator.moveNext();
@@ -130,7 +129,7 @@ public class EventIteratorTest extends EventStoreChallengeTest {
     eventIterator.remove();
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test(expected = IllegalStateException.class)
   public void remove_ShouldNotMoveNext_When_CalledOverEvent() {
     eventIterator = new EventIteratorImpl(createDataView(DATASET.subList(0, 2)));
     eventIterator.moveNext();

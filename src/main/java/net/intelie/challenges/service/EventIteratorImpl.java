@@ -2,7 +2,6 @@ package net.intelie.challenges.service;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 import net.intelie.challenges.model.Event;
 
@@ -34,17 +33,13 @@ public class EventIteratorImpl implements EventIterator {
     if (iterator == null) {
       throw new IllegalStateException("The iteration is closed.");
     }
-    if (currentEvent == null) {
-      throw new NoSuchElementException("There is no current event in iteration.");
-    }
+    checkCurrentEvent();
     return currentEvent;
   }
 
   @Override
   public void remove() {
-    if (currentEvent == null) {
-      throw new IllegalStateException("There is no current event in iteration.");
-    }
+    checkCurrentEvent();
     iterator.remove();
     currentEvent = null;
   }
@@ -53,6 +48,12 @@ public class EventIteratorImpl implements EventIterator {
   public void close() throws Exception {
     currentEvent = null;
     iterator = null;
+  }
+
+  private void checkCurrentEvent() {
+    if (currentEvent == null) {
+      throw new IllegalStateException("There is no current event in iteration.");
+    }
   }
 
 }
