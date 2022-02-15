@@ -15,11 +15,11 @@ public class EventIteratorImpl implements EventIterator {
   /** Event dataset. In this map, each event is mapped by its timestamp. */
   private final Map<Long, Event> events;
 
-  /** The wrapped event iterator. */
-  private Iterator<Event> iterator;
+  /** The wrapped event iterator. This one iterates over the dataset keys. */
+  private Iterator<Long> iterator;
 
-  /** The current event. It is the event pointed by the iterator. */
-  private Event currentEvent;
+  /** The current event key. It is the key pointed by the iterator. */
+  private Long currentEventKey;
 
   /**
    * Constructor. Creates a new instance of {@link EventIteratorImpl}.
@@ -31,7 +31,7 @@ public class EventIteratorImpl implements EventIterator {
   public EventIteratorImpl(Map<Long, Event> events) {
     this.events = events;
     if (events != null) {
-      iterator = this.events.values().iterator();
+      iterator = this.events.keySet().iterator();
     }
   }
 
@@ -42,10 +42,10 @@ public class EventIteratorImpl implements EventIterator {
   public boolean moveNext() {
     /* Iterator is invalid, closed, or has no more events to visit. */
     if (iterator == null || !iterator.hasNext()) {
-      currentEvent = null;
+      currentEventKey = null;
       return false;
     }
-    currentEvent = iterator.next();
+    currentEventKey = iterator.next();
     return true;
   }
 
@@ -55,7 +55,7 @@ public class EventIteratorImpl implements EventIterator {
   @Override
   public Event current() {
     checkState();
-    return currentEvent;
+    return events.get(currentEventKey);
   }
 
   /**
@@ -65,7 +65,7 @@ public class EventIteratorImpl implements EventIterator {
   public void remove() {
     checkState();
     iterator.remove();
-    currentEvent = null;
+    currentEventKey = null;
   }
 
   /**
@@ -73,7 +73,7 @@ public class EventIteratorImpl implements EventIterator {
    */
   @Override
   public void close() throws Exception {
-    currentEvent = null;
+    currentEventKey = null;
     iterator = null;
   }
 
@@ -85,7 +85,7 @@ public class EventIteratorImpl implements EventIterator {
     if (iterator == null) {
       throw new IllegalStateException("The iteration is closed.");
     }
-    if (currentEvent == null) {
+    if (currentEventKey == null) {
       throw new IllegalStateException("There is no current event in iteration.");
     }
   }
