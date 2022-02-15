@@ -12,14 +12,14 @@ public interface EventStore {
   /**
    * Stores an event
    *
-   * @param event
+   * @param event The event to be stored.
    */
   void insert(Event event);
 
   /**
    * Removes all events of specific type.
    *
-   * @param type
+   * @param type The type of events to be removed.
    */
   void removeAll(String type);
 
