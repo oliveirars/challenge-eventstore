@@ -8,7 +8,7 @@ import java.util.Objects;
 public class Utils {
 
   /**
-   * Checks if an object is <code>null</code>. In affirmative case, throw a new
+   * Checks if an object is <code>null</code>. In affirmative case, throws a new
    * instance of {@link IllegalArgumentException}. This method is an alternative
    * to {@link Objects#requireNonNull} which throws a
    * {@link NullPointerException}.

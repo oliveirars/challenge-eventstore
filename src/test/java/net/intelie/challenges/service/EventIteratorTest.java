@@ -84,6 +84,8 @@ public class EventIteratorTest extends EventStoreChallengeTest {
   /**
    * Tests if <code>moveNext</code> returns <code>false</code> when iterator is
    * closed.
+   * 
+   * @throws Exception
    */
   @Test
   public void moveNext_ShouldReturnFalse_When_IterationHasBeenClosed() throws Exception {
@@ -129,6 +131,8 @@ public class EventIteratorTest extends EventStoreChallengeTest {
   /**
    * Tests if <code>current</code> throws {@link IllegalStateException} when
    * iterator is closed.
+   * 
+   * @throws Exception
    */
   @Test(expected = IllegalStateException.class)
   public void current_ShouldThrowIllegalState_When_IterationHasBeenClosed() throws Exception {
@@ -210,6 +214,7 @@ public class EventIteratorTest extends EventStoreChallengeTest {
    * Tests if <code>remove</code> deletes the current event from the underlying
    * dataset.
    */
+  @Test
   public void remove_ShouldDeleteEventFromDataView_When_CalledOverEvent() {
     Event eventToRemove = DATASET.get(0);
     Event eventToKeep = DATASET.get(1);

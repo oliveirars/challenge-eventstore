@@ -30,7 +30,7 @@ public class ConcurrentOperationTest extends EventStoreChallengeTest {
    * conclusions. The method shuffles the collection before start, avoiding any
    * kind of order bias.
    * 
-   * @param threads Collections of threads to be executed.
+   * @param threads Collection of threads to be executed.
    * @throws InterruptedException
    */
   private static void runAndWaitForThreads(List<Thread> threads) throws InterruptedException {
@@ -149,10 +149,10 @@ public class ConcurrentOperationTest extends EventStoreChallengeTest {
    * Tests if concurrent removals work without errors and if the result store is
    * correct.
    * 
-   * This test creates a initial event store with thousands of events. After
-   * that, it creates a collection of remover threads (each one has to remove
-   * the same amount of events) and spawns them. The test successfully ends if
-   * all the events are removed without concurrent access errors.
+   * This test populates the event store with thousands of events. After that,
+   * it creates a collection of remover threads (each one has to remove the same
+   * amount of events) and spawns them. The test successfully ends if all the
+   * events are removed without concurrent access errors.
    * 
    * @throws InterruptedException
    */
@@ -176,9 +176,9 @@ public class ConcurrentOperationTest extends EventStoreChallengeTest {
    * Tests if concurrent insertions and removals work without errors and if the
    * result store is correct.
    * 
-   * This test creates a initial event store with thousands of events. After
-   * that, it creates a collection of remover threads and a collection of
-   * inserter threads.
+   * This test populates the event store with thousands of events. After that,
+   * it creates a collection of remover threads and a collection of inserter
+   * threads.
    * 
    * After the setup phase, it spawns the threads. The test successfully ends if
    * all prior existing events are removed and all new events are inserted
@@ -217,9 +217,9 @@ public class ConcurrentOperationTest extends EventStoreChallengeTest {
    * Tests if concurrent query and removeAll work without errors and if the
    * result store is correct.
    * 
-   * This test creates a initial event store with thousands of events. After
-   * that, it creates a thread that will remove all events of a type and a
-   * thread that will query the event store.
+   * This test populates the event store with thousands of events. After that,
+   * it creates a thread that will remove all events of a type and a thread that
+   * will query the event store.
    * 
    * The test successfully ends if the data view received by the query thread is
    * not affected by the removeAll called by the other thread.

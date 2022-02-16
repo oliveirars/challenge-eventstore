@@ -18,7 +18,7 @@ public enum EventType {
    * Gets an event type according to its name.
    *
    * @param typeName The name of the type to be returned.
-   * @returns An event type with the name requested in typeName.
+   * @return An event type with the name requested in typeName.
    */
   public static EventType getByName(String typeName) {
     return Arrays.asList(values()).stream().filter(type -> type.name.equals(typeName)).findFirst().orElse(null);

@@ -60,8 +60,7 @@ public class EventStoreImpl implements EventStore {
    * Checks if an event type is valid.
    * 
    * @param eventType The type to be checked.
-   * @throws IllegalArgumentException if the type is null or it is not
-   *         supported.
+   * @throws IllegalArgumentException if the type is null or not supported.
    */
   private static void checkEventType(String eventType) {
     Utils.requireNonNull(eventType, "Event type cannot be null.");
@@ -98,13 +97,13 @@ public class EventStoreImpl implements EventStore {
    * {@inheritDoc} This method performs the query over the events store and
    * creates a data view to be used as underlying dataset of the returned
    * iterator. An important observation is that the view created by
-   * <code>submap</code> method is linked with the original data structure. In
+   * <code>submap</code> method is linked to the original data structure. In
    * other words, changes made by the iterator will be reflected in the original
    * map, which is a required behavior.
    * 
    * The first step of this operation is to select the correct events according
    * with the required type. It is done using the retrieve operation on map,
-   * which has constant time cost. After that, it call the <code>submap</code>
+   * which has constant time cost. After that, it calls the <code>submap</code>
    * method which has time complexity equals to O(log n) in the average case. In
    * the worst case, it has O(n) complexity.
    */
