@@ -22,6 +22,18 @@ public class EventIteratorTest extends EventStoreChallengeTest {
   /** Local copy of the test dataset. */
   private static List<Event> DATASET;
 
+  /**
+   * Creates a data view do initialize the test iterator.
+   * 
+   * @param events List of events to be included in the data view.
+   * @return A {@link TreeMap} containing all events received as parameter.
+   */
+  private static Map<Long, Event> createDataView(List<Event> events) {
+    Map<Long, Event> dataView = new TreeMap<>();
+    events.forEach(event -> dataView.put(event.timestamp(), event));
+    return dataView;
+  }
+
   /** Loads the local dataset before all tests. */
   @BeforeClass
   public static void init() {
@@ -211,18 +223,6 @@ public class EventIteratorTest extends EventStoreChallengeTest {
     assertEquals(1, dataView.size());
     assertFalse(dataView.containsKey(eventToRemove.timestamp()));
     assertEquals(dataView.get(eventToKeep.timestamp()), eventToKeep);
-  }
-
-  /**
-   * Creates a data view do initialize the test iterator.
-   * 
-   * @param events List of events to be included in the data view.
-   * @return A {@link TreeMap} containing all events received as parameter.
-   */
-  private static Map<Long, Event> createDataView(List<Event> events) {
-    Map<Long, Event> dataView = new TreeMap<>();
-    events.forEach(event -> dataView.put(event.timestamp(), event));
-    return dataView;
   }
 
 }
