@@ -17,12 +17,24 @@ import org.junit.Test;
 import net.intelie.challenges.model.Event;
 import net.intelie.challenges.model.EventType;
 
+/**
+ * Tests for concurrent use of the event store operations.
+ */
 public class ConcurrentOperationTest extends EventStoreChallengeTest {
 
   /** The event store to be tested. */
   private EventStore eventStore;
 
+  /**
+   * Utility method used to execute a collection of threads and wait for their
+   * conclusions. The method shuffles the collection before start, avoiding any
+   * kind of order bias.
+   * 
+   * @param threads Collections of threads to be executed.
+   * @throws InterruptedException
+   */
   private static void runAndWaitForThreads(List<Thread> threads) throws InterruptedException {
+    Collections.shuffle(threads);
     for (Thread thread : threads) {
       thread.start();
     }
@@ -31,11 +43,29 @@ public class ConcurrentOperationTest extends EventStoreChallengeTest {
     }
   }
 
+  /**
+   * Generates a collection of events and store them in the event store.
+   * 
+   * @param type Type of the events.
+   * @param start Initial timestamp.
+   * @param end Final timestamp.
+   */
   private void generateEventsAndInsert(EventType type, long start, long end) {
     LongStream.range(start, end).boxed().map(timestamp -> new Event(type.toString(), timestamp)).forEach(
       eventStore::insert);
   }
 
+  /**
+   * Generates a collection of threads responsible for inserting events in the
+   * event store.
+   * 
+   * @param eventType Type of events.
+   * @param numThreads Number of threads.
+   * @param eventsPerThread Number of events to be inserted by each thread.
+   * @param timeOffset An offset of timestamp used to define the range of events
+   *        to be created.
+   * @return The list of created threads.
+   */
   private List<Thread> generateInserters(EventType eventType, int numThreads, int eventsPerThread, int timeOffset) {
     List<Thread> threads = new ArrayList<>(numThreads);
 
@@ -50,6 +80,15 @@ public class ConcurrentOperationTest extends EventStoreChallengeTest {
     return threads;
   }
 
+  /**
+   * Generates a collection of threads responsible for deleting events from the
+   * event store.
+   * 
+   * @param eventType Type of events.
+   * @param numThreads Number of threads.
+   * @param eventsPerThread Number of events to be deleted by each thread.
+   * @return The list of created threads.
+   */
   private List<Thread> generateRemovers(EventType eventType, int numThreads, int eventsPerThread) {
     List<Thread> threads = new ArrayList<>(numThreads);
 
@@ -79,15 +118,23 @@ public class ConcurrentOperationTest extends EventStoreChallengeTest {
     this.eventStore = new EventStoreImpl();
   }
 
+  /**
+   * Tests if concurrent insertions work without errors and if the result store
+   * is correct.
+   * 
+   * This test creates a collection of inserter threads (each one has to insert
+   * a lot of events) and spawns them. The test successfully ends if all the
+   * events are inserted without concurrent access errors.
+   * 
+   * @throws InterruptedException
+   */
   @Test
   public void insert_ShouldWork_Over_ConcurrentAcesses() throws InterruptedException {
 
     int numThreads = 10;
     int eventsPerThread = 5000;
-    List<Thread> insertWorkers = generateInserters(EventType.TYPE_1, numThreads, eventsPerThread, 0);
-    Collections.shuffle(insertWorkers);
 
-    runAndWaitForThreads(insertWorkers);
+    runAndWaitForThreads(generateInserters(EventType.TYPE_1, numThreads, eventsPerThread, 0));
     eventIterator = eventStore.query(EventType.TYPE_1.toString(), Long.MIN_VALUE, Long.MAX_VALUE);
 
     int eventsCount = 0;
@@ -98,6 +145,17 @@ public class ConcurrentOperationTest extends EventStoreChallengeTest {
     assertEquals(numThreads * eventsPerThread, eventsCount);
   }
 
+  /**
+   * Tests if concurrent removals work without errors and if the result store is
+   * correct.
+   * 
+   * This test creates a initial event store with thousands of events. After
+   * that, it creates a collection of remover threads (each one has to remove
+   * the same amount of events) and spawns them. The test successfully ends if
+   * all the events are removed without concurrent access errors.
+   * 
+   * @throws InterruptedException
+   */
   @Test
   public void remove_ShouldWork_Over_ConcurrentAcesses() throws InterruptedException {
 
@@ -106,16 +164,28 @@ public class ConcurrentOperationTest extends EventStoreChallengeTest {
 
     int numThreads = 10;
     int eventsPerThread = totalEvents / numThreads;
-    List<Thread> removeWorkers = generateRemovers(EventType.TYPE_1, numThreads, eventsPerThread);
-    Collections.shuffle(removeWorkers);
 
-    runAndWaitForThreads(removeWorkers);
+    runAndWaitForThreads(generateRemovers(EventType.TYPE_1, numThreads, eventsPerThread));
     eventIterator = eventStore.query(EventType.TYPE_1.toString(), Long.MIN_VALUE, Long.MAX_VALUE);
 
     assertFalse(eventIterator.moveNext());
 
   }
 
+  /**
+   * Tests if concurrent insertions and removals work without errors and if the
+   * result store is correct.
+   * 
+   * This test creates a initial event store with thousands of events. After
+   * that, it creates a collection of remover threads and a collection of
+   * inserter threads.
+   * 
+   * After the setup phase, it spawns the threads. The test successfully ends if
+   * all prior existing events are removed and all new events are inserted
+   * without concurrent access errors.
+   * 
+   * @throws InterruptedException
+   */
   @Test
   public void insertAndRemove_ShouldWork_Over_ConcurrentAcesses() throws InterruptedException {
 
@@ -132,8 +202,6 @@ public class ConcurrentOperationTest extends EventStoreChallengeTest {
     int eventsPerInserter = 5000;
     workers.addAll(generateInserters(EventType.TYPE_1, numInserters, eventsPerInserter, previousStoredCount));
 
-    Collections.shuffle(workers);
-
     runAndWaitForThreads(workers);
     eventIterator = eventStore.query(EventType.TYPE_1.toString(), Long.MIN_VALUE, Long.MAX_VALUE);
 
@@ -145,6 +213,19 @@ public class ConcurrentOperationTest extends EventStoreChallengeTest {
     assertEquals(numInserters * eventsPerInserter, eventsCount);
   }
 
+  /**
+   * Tests if concurrent query and removeAll work without errors and if the
+   * result store is correct.
+   * 
+   * This test creates a initial event store with thousands of events. After
+   * that, it creates a thread that will remove all events of a type and a
+   * thread that will query the event store.
+   * 
+   * The test successfully ends if the data view received by the query thread is
+   * not affected by the removeAll called by the other thread.
+   * 
+   * @throws InterruptedException
+   */
   @Test
   public void queryAndRemoveAll_ShouldWork_Over_ConcurrentAcesses() throws InterruptedException {
 

@@ -72,6 +72,10 @@ public class EventStoreImpl implements EventStore {
    * {@inheritDoc}. If the event type is not present in the events map, a new
    * {@link ConcurrentSkipListMap} is added to store events of this type. At the
    * end, the event is just stored in the correct type map.
+   * 
+   * The cost of this operation is the cost of insert an element in the
+   * {@link ConcurrentSkipListMap}, which is, in the worst case, O(n). In the
+   * average case, the cost is O(log n), where n is the amount of stored events.
    */
   @Override
   public void insert(Event event) {
@@ -81,7 +85,8 @@ public class EventStoreImpl implements EventStore {
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritDoc} This operation is done in constant time because it just
+   * removes an entry from the <type,events> map.
    */
   @Override
   public void removeAll(String type) {
@@ -96,14 +101,20 @@ public class EventStoreImpl implements EventStore {
    * <code>submap</code> method is linked with the original data structure. In
    * other words, changes made by the iterator will be reflected in the original
    * map, which is a required behavior.
+   * 
+   * The first step of this operation is to select the correct events according
+   * with the required type. It is done using the retrieve operation on map,
+   * which has constant time cost. After that, it call the <code>submap</code>
+   * method which has time complexity equals to O(log n) in the average case. In
+   * the worst case, it has O(n) complexity.
    */
   @Override
   public EventIterator query(String type, long startTime, long endTime) {
     checkEventType(type);
     checkQueryInterval(startTime, endTime);
 
-    Map<Long, Event> selectedEventsView = events.getOrDefault(type, new ConcurrentSkipListMap<>())
-      .subMap(startTime, endTime);
+    Map<Long, Event> selectedEventsView = events.getOrDefault(type, new ConcurrentSkipListMap<>()).subMap(startTime,
+      endTime);
 
     return new EventIteratorImpl(selectedEventsView);
   }
